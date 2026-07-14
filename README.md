@@ -90,11 +90,11 @@ python -m dataforge_streaming.consumers.spark_consumer
 
 | Repo | Purpose |
 |---|---|
-| [dataforge-core](https://github.com/vipul-singhal-data/dataforge-core) | Batch processing framework |
+| [dataforge-core](https://github.com/Vipul19feb/dataforge-core) | Batch processing framework |
 | **dataforge-streaming** (this repo) | Real-time processing |
-| [dataforge-ai](https://github.com/vipul-singhal-data/dataforge-ai) | AI/ML data engineering |
-| [dataforge-analytics](https://github.com/vipul-singhal-data/dataforge-analytics) | BI & analytics |
-| [dataforge-platform](https://github.com/vipul-singhal-data/dataforge-platform) | Infrastructure |
+| [dataforge-ai](https://github.com/Vipul19feb/dataforge-ai) | AI/ML data engineering |
+| [dataforge-analytics](https://github.com/Vipul19feb/dataforge-analytics) | BI & analytics |
+| [dataforge-platform](https://github.com/Vipul19feb/dataforge-platform) | Infrastructure |
 
 ---
 
