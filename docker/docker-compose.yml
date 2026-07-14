@@ -1,0 +1,66 @@
+services:
+  # Kafka (KRaft mode — no Zookeeper)
+  kafka:
+    image: confluentinc/cp-kafka:7.6.0
+    container_name: dataforge-kafka
+    ports:
+      - "9092:9092"
+      - "29092:29092"
+    environment:
+      KAFKA_NODE_ID: 1
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:29092,PLAINTEXT_HOST://localhost:9092
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:29093
+      KAFKA_LISTENERS: PLAINTEXT://kafka:29092,CONTROLLER://kafka:29093,PLAINTEXT_HOST://0.0.0.0:9092
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_LOG_DIRS: /tmp/kraft-combined-logs
+      CLUSTER_ID: MkU3OEVBNTcwNTJENDM2Qk
+    healthcheck:
+      test: kafka-topics --bootstrap-server kafka:29092 --list
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Schema Registry
+  schema-registry:
+    image: confluentinc/cp-schema-registry:7.6.0
+    container_name: dataforge-schema-registry
+    ports:
+      - "8081:8081"
+    environment:
+      SCHEMA_REGISTRY_HOST_NAME: schema-registry
+      SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS: kafka:29092
+    depends_on:
+      kafka:
+        condition: service_healthy
+
+  # Kafka UI
+  kafka-ui:
+    image: provectuslabs/kafka-ui:latest
+    container_name: dataforge-kafka-ui
+    ports:
+      - "8080:8080"
+    environment:
+      KAFKA_CLUSTERS_0_NAME: dataforge
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:29092
+      KAFKA_CLUSTERS_0_SCHEMAREGISTRY: http://schema-registry:8081
+    depends_on:
+      - kafka
+      - schema-registry
+
+  # Create default topics
+  kafka-init:
+    image: confluentinc/cp-kafka:7.6.0
+    container_name: dataforge-kafka-init
+    depends_on:
+      kafka:
+        condition: service_healthy
+    entrypoint: >
+      /bin/sh -c "
+        kafka-topics --create --if-not-exists --topic orders --partitions 3 --replication-factor 1 --bootstrap-server kafka:29092;
+        kafka-topics --create --if-not-exists --topic order-events --partitions 3 --replication-factor 1 --bootstrap-server kafka:29092;
+        kafka-topics --create --if-not-exists --topic cdc-customers --partitions 3 --replication-factor 1 --bootstrap-server kafka:29092;
+        kafka-topics --create --if-not-exists --topic late-events --partitions 1 --replication-factor 1 --bootstrap-server kafka:29092;
+        echo 'Topics created';
+      "
